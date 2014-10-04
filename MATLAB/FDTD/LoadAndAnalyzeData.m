@@ -401,7 +401,7 @@ for intDataParseIndex = 1:intDataParseSize
     run LoadAndAnalyzeDataPostProcessing
         
     %% Saves datafile
-    save([strAnalyzedDataPath char(arrDataPath(intDataParseIndex,2)) '.mat'], 'freq','txAvg','refAvg*' ,'n')
+    save([strAnalyzedDataPath char(arrDataPath(intDataParseIndex,2)) '.mat'], 'freq','txAvg*','refAvg*' ,'n')
 end
 
 
