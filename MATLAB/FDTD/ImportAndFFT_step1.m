@@ -398,7 +398,7 @@ for intDataParseIndex = 1:intDataParseSize
     n =  cell2mat((arrDataPath(intDataParseIndex,3)));
     
     %% Runs post processing
-    run LoadAndAnalyzeDataPostProcessing
+    run ImportAndFFT_MakeFigures
         
     %% Saves datafile
     save([strAnalyzedDataPath char(arrDataPath(intDataParseIndex,2)) '.mat'], 'freq','txAvg*','refAvg*' ,'n')

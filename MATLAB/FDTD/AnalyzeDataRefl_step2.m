@@ -1,3 +1,117 @@
+%% Initializes the script
+
+%Clears the screen
+clc;
+
+%Clears all the variables
+clear all;
+
+%Closes all windows 
+close all;
+
+%% File Path Info
+
+%Reads the Excel spreadsheet for parse locations and file settings
+[~,~,RawParse] = xlsread('DataPath.xlsx','Raw FDTD Data');
+
+%Constructs arrDataPath from Excel spreadsheet
+arrDataPath = RawParse(2:(size(RawParse,1)),:);
+
+%Determines the size of the data to parse
+intDataParseSize = size(arrDataPath,1);
+
+%Prints starting message
+fprintf('\n\nGetting started!\n\nMake sure to close all other unnecessary programs...this will take some memory.\nClick on the command window and press Ctrl+C to terminate the job.\n');
+
+%Loads the AM 1.5 data
+load('AM1.5.mat')
+
+%Loops through the sets of data to parse
+for intDataParseIndex = 1:size(arrDataPath,1)
+    %Prints progress of overall parsing
+    fprintf('\n%i of %i datasets started.\n\n',intDataParseIndex, size(arrDataPath,1));
+ 
+    
+    %Length of data
+    intDataXLength = cell2mat(arrDataPath(intDataParseIndex,9));
+    intDataYLength = cell2mat(arrDataPath(intDataParseIndex,10));
+
+    %Where to store the data
+    strAnalyzedDataPath = [char(arrDataPath(intDataParseIndex,12)) '\'];
+
+    %"Reflected" file name stub
+    strFileReflected = ['\' char(arrDataPath(intDataParseIndex,13))];
+
+    %"Transmitted" file name stub
+    strFileTransmitted = ['\' char(arrDataPath(intDataParseIndex,14))];
+    
+    %Loads the data
+    load([strAnalyzedDataPath char(arrDataPath(intDataParseIndex,2)) '.mat']);
+    
+    %Creates the wavelength vector
+    c = 299792458;
+    WaveLength = c./freq.*1e9;
+
+    %Figures out the minimum wavelength
+    minWave = min(WaveLength);
+    maxWave = max(WaveLength);
+
+    %Truncates the AM1.5 data to just the pertinent wavelengths
+    AMTruncated = find(AM15(:,1) > minWave);
+    AMStart = AMTruncated(1);
+    AMTruncated = find(AM15(:,1) < maxWave);
+    AMEnd = max(AMTruncated);
+    AM15 = AM15(AMStart:AMEnd,:);
+
+    %Clears useless variables
+    clear 'c' 'AMEnd' 'AMStart' 'AMTruncated' 'min*' 'max*'; 
+
+    %Builds the transmitted data array
+    txArray(intDataParseIndex,:) = txAvg;
+    
+    %Builds the received data array
+    refArray(intDataParseIndex,:) = refAvg;
+    
+    %Calculates the percent transmitted
+    percentTxArray(intDataParseIndex,:) = txAvg ./ txAvgFS;
+    
+    %Calculates the percent reflected
+    percentReflArray(intDataParseIndex,:) = refAvg ./ txAvgFS;
+    
+    %Calculates the average percent reflected 
+    avgReflArray (intDataParseIndex) = sum(refAvg ./ txAvgFS) / length(txAvgFS);
+    
+    %===================================================
+    % Performs weighted average
+    %===================================================
+    
+    %Calculates the percent reflected
+    PercentReflected = refAvg ./ txAvgFS;
+
+    %Flips the data
+    percentRefl = fliplr(PercentReflected);
+
+    %Performs linear interpolation
+    percentReflInterp = interp1(WaveLength,percentRefl,AM15(:,1));
+
+    %Multiplies data by AM1.5 spectrum
+    AMScaled = AM15(:,3) .* percentReflInterp;
+    AMReference = AM15(:,3);
+    WaveLenAM15 = AM15(:,1);
+    
+    %Calculates the weighted average percent reflected 
+    avgWeightedReflArray (intDataParseIndex) = sum(AMScaled) / sum(AM15(:,3));
+    
+    %Builds the legend
+    strLegend(intDataParseIndex) = arrDataPath(intDataParseIndex,2);
+end
+
+%Clears the misc. data
+clear ('arrDataPath', 'intDataParseIndex', 'strAnalyzedDataPath','refAvg','txAvg');
+
+%% =======================================
+%  Makes figures
+%=========================================
 
 %Saves the data
 %save (['M:\Kat FDTD Data\Analyzed Data\Frequency Response\Cumulative Data, Made on ' char(date)])
@@ -25,15 +139,15 @@
 % %=========================375 nm Cylinders and thin film================================
 figure
 hold on
-plot(WaveLength, percentReflArray(51,:).*100,'-k','LineWidth',2) % Bare 1.5 material
-plot(WaveLength, percentReflArray(168,:).*100,'--g','LineWidth',2) % 5 layer thin film, 100 nm/layer, 1.1, 1.15, 1.2, 1.25, 1.3
-plot(WaveLength, percentReflArray(169,:).*100,'--b','LineWidth',2)% 5 layer thin film with 50 random imperfections 1.1 to 1.3 RI
-plot(WaveLength, percentReflArray(170,:).*100,'-b','LineWidth',2)% 5 layer thin film with 10 random imperfections 1.1 to 1.3 RI
-plot(WaveLength, percentReflArray(171,:).*100,':b','LineWidth',2)% 5 layer thin film with 100 random imperfections 1.1 to 1.3 RI
-plot(WaveLength, percentReflArray(172,:).*100,':r','LineWidth',2)% 5 layer thin film with 100 spherical random imperfections 1.1 to 1.3 RI
-plot(WaveLength, percentReflArray(173,:).*100,'--m','LineWidth',2)% 5 layer thin film with 100 spherical random imperfections 50 nm diameter 1.1 to 1.3 RI
-plot(WaveLength, percentReflArray(174,:).*100,'-r','LineWidth',2)% 5 layer thin film with 200 spherical random imperfections 100 nm diameter 1.1 to 1.3 RI
-plot(WaveLength, percentReflArray(175,:).*100,'-g','LineWidth',2)% 5 layer thin film with 100 spherical random imperfections 100 nm diameter 1.1 to 1.5 RI
+plot(WaveLength, percentReflArray(4,:).*100,'-k','LineWidth',2) % Bare 1.5 material
+plot(WaveLength, percentReflArray(5,:).*100,'--g','LineWidth',2) % 5 layer thin film, 100 nm/layer, 1.1, 1.15, 1.2, 1.25, 1.3
+% plot(WaveLength, percentReflArray(169,:).*100,'--b','LineWidth',2)% 5 layer thin film with 50 random imperfections 1.1 to 1.3 RI
+% plot(WaveLength, percentReflArray(170,:).*100,'-b','LineWidth',2)% 5 layer thin film with 10 random imperfections 1.1 to 1.3 RI
+% plot(WaveLength, percentReflArray(171,:).*100,':b','LineWidth',2)% 5 layer thin film with 100 random imperfections 1.1 to 1.3 RI
+% plot(WaveLength, percentReflArray(172,:).*100,':r','LineWidth',2)% 5 layer thin film with 100 spherical random imperfections 1.1 to 1.3 RI
+% plot(WaveLength, percentReflArray(173,:).*100,'--m','LineWidth',2)% 5 layer thin film with 100 spherical random imperfections 50 nm diameter 1.1 to 1.3 RI
+% plot(WaveLength, percentReflArray(174,:).*100,'-r','LineWidth',2)% 5 layer thin film with 200 spherical random imperfections 100 nm diameter 1.1 to 1.3 RI
+% plot(WaveLength, percentReflArray(175,:).*100,'-g','LineWidth',2)% 5 layer thin film with 100 spherical random imperfections 100 nm diameter 1.1 to 1.5 RI
 
 title ('5 Layer Thin Film With and Without Imperfections')
 % legend(char([strLegend(1) strLegend(17:28)]),'Location','Best');
@@ -46,7 +160,7 @@ ylabel ('Percent Reflected');
 %Sets the font to 16, bold and saving the figure
 set(findall(gcf,'-property','FontSize'),'FontSize',16) 
 set(findall(gcf,'-property','FontWeight'),'FontWeight','bold') 
-print(gcf,'-dpng','-r600',['5LayerImperfections_3-13-14.png'])
+print(gcf,'-dpng','-r600',['testing20141004.png'])
 %print(gcf,'-dpng','-r600',['M:\Kat FDTD Data\Figures\5LayerImperfections_3-13-14.png'])
 
 % % %=========================5 layer thin film with 100 spherical imperfections Different Sizes================================
