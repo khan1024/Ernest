@@ -1,4 +1,4 @@
-function [dataExr, dataExi, dataEyr, dataEyi, dataHxr, dataHxi, dataHyr, dataHyi]  = ff_readXFssData(dataFileExr, dataFileExi, dataFileEyr, dataFileEyi, dataFileHxr, dataFileHxi, dataFileHyr, dataFileHyi, intDataXLength, intDataYLength) 
+function [dataExr, dataExi, dataEyr, dataEyi, dataEzr, dataEzi,dataHxr, dataHxi, dataHyr, dataHyi,dataHzr, dataHzi]  = ff_readXFssData(dataFileExr, dataFileExi, dataFileEyr, dataFileEyi,dataFileEzr, dataFileEzi, dataFileHxr, dataFileHxi, dataFileHyr, dataFileHyi, dataFileHzr, dataFileHzi,intDataXLength, intDataYLength) 
 % Load discrete frequency results from XF into Matlab
 %a
 % Details in Reference Manual
@@ -57,8 +57,6 @@ else
     dataEyr = [];
 end
 
-
-
 %Opens and parses the Eyi files if a Eyi file name was given
 if size(dataFileEyi) > 0   
     
@@ -74,6 +72,46 @@ else
     %Returns a blank matrix
     dataEyi = [];
 end
+
+%Opens and parses the Eyr files if a Eyr file name was given
+if size(dataFileEzr) > 0   
+    
+    %Opens the file
+    fid = fopen( dataFileEzr );
+    
+    %Reads the entire file
+    dataEzr = fread( fid, [intDataXLength intDataYLength], 'single' );
+
+    %Closes the file
+    fclose(fid);
+else 
+    %Returns a blank matrix
+    dataEzr = [];
+end
+
+%Opens and parses the Eyi files if a Eyi file name was given
+if size(dataFileEzi) > 0   
+    
+    %Opens the file
+    fid = fopen( dataFileEzi );
+    
+    %Reads the entire file
+    dataEzi = fread( fid, [intDataXLength intDataYLength], 'single' );
+    
+    %Closes the file
+    fclose(fid);
+else 
+    %Returns a blank matrix
+    dataEzi = [];
+end
+
+
+
+
+
+
+
+
 
 %Opens and parses the Hxr files if a Hxr file name was given
 if size(dataFileHxr) > 0   
@@ -107,7 +145,7 @@ else
     dataHxi = [];
 end
 
-%Opens and parses the Eyr files if a Eyr file name was given
+%Opens and parses the Hyr files if a Hyr file name was given
 if size(dataFileHyr) > 0   
     
     %Opens the file
@@ -123,7 +161,7 @@ else
     dataHyr = [];
 end
 
-%Opens and parses the Eyi files if a Eyi file name was given
+%Opens and parses the Hyi files if a Hyi file name was given
 if size(dataFileHyi) > 0   
     
     %Opens the file
@@ -138,3 +176,36 @@ else
     %Returns a blank matrix
     dataHyi = [];
 end
+
+%Opens and parses the Hzr files if a Hzr file name was given
+if size(dataFileHzr) > 0   
+    
+    %Opens the file
+    fid = fopen( dataFileHzr );
+    
+    %Reads the entire file
+    dataHzr = fread( fid, [intDataXLength intDataYLength], 'single' );
+
+    %Closes the file
+    fclose(fid);
+else 
+    %Returns a blank matrix
+    dataHzr = [];
+end
+
+%Opens and parses the Hyi files if a Hyi file name was given
+if size(dataFileHzi) > 0   
+    
+    %Opens the file
+    fid = fopen( dataFileHzi );
+    
+    %Reads the entire file
+    dataHzi = fread( fid, [intDataXLength intDataYLength], 'single' );
+    
+    %Closes the file
+    fclose(fid);
+else 
+    %Returns a blank matrix
+    dataHzi = [];
+end
+
