@@ -202,7 +202,7 @@ for intDataParseIndex = 1:intDataParseSize
     end
     
     %Performs FFT on data
-    fprintf('\n\nPerforming Reflected Hx FFT...\n\n');
+    fprintf('\n\nPerforming Reflected Hy FFT...\n\n');
     refHy_FFT = PerformFFT(reflectedHyr,cell2mat(arrDataPath(intDataParseIndex,5)),(cell2mat(arrDataPath(intDataParseIndex,7))*1e-9),(cell2mat(arrDataPath(intDataParseIndex,8))*1e-9));
     
     %Clears unused variables
