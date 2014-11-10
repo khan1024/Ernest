@@ -26,7 +26,9 @@ freqStopIndex = find(f <=freqStop);
 freqStopIndex = freqStopIndex(length(freqStopIndex));
 
 %Initializes the 3D FFT matrix
-fftResult = zeros(size(matTransform,1),size(matTransform,2),(freqStopIndex-freqStartIndex+1));
+%fftResult = zeros(size(matTransform,1),size(matTransform,2),(freqStopIndex-freqStartIndex+1));
+%fftResult = zeros(size(matTransform,1),size(matTransform,2),size(matTransform,3));
+
 
 %% Performs 2D FFT
 for intIndex = 1:size(matTransform,1)

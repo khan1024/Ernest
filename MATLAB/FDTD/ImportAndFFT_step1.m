@@ -9,6 +9,9 @@ clear all;
 %Closes all windows 
 close all;
 
+%Starting bin
+intStartBin = 26;
+
 %% File Path Info 
 
 %Reads the Excel spreadsheet for parse locations and file settings
@@ -48,8 +51,8 @@ for intDataParseIndex = 1:intDataParseSize
     fprintf('\n%i of %i datasets started.\n\n',intDataParseIndex, intDataParseSize);
     
     %Length of data
-    intDataXLength = cell2mat(arrDataPath(intDataParseIndex,9));
-    intDataYLength = cell2mat(arrDataPath(intDataParseIndex,10));
+    intDataXLengthExcel = cell2mat(arrDataPath(intDataParseIndex,9));
+    intDataYLengthExcel = cell2mat(arrDataPath(intDataParseIndex,10));
 
     %Where to store the data
     strAnalyzedDataPath = [char(arrDataPath(intDataParseIndex,12)) '\'];
@@ -68,6 +71,37 @@ for intDataParseIndex = 1:intDataParseSize
     intHyCoeff = cell2mat(arrDataPath(intDataParseIndex,19));
     intHzCoeff = cell2mat(arrDataPath(intDataParseIndex,20));
     
+    %Reads the info file
+    infoFile = [char(arrDataPath(intDataParseIndex,1)) '\' char(arrDataPath(intDataParseIndex,21))];
+
+    %Opens the info file
+    fid = fopen(infoFile);
+
+    %Reads the rmpt and version file
+    Rmpt = fread(fid, 4, 'char*1' );
+    version = fread( fid, 1, '*uint8', 0, 'a' );
+
+    %Reads the bit mask
+    bitmask = fread( fid, 1, '*uint32', 0, 'a' );   
+
+    %Reads the geometry size (absolute)
+    geoSize = fread( fid, 1, '*uint32', 0, 'a' );
+
+    %Closes the info file
+    fclose(fid);
+
+    %Calculates the X or Ydata length
+    if (intDataXLengthExcel == 0)
+        intDataYLength = intDataYLengthExcel;
+        intDataXLength = (geoSize/intDataYLength);
+    elseif (intDataYLengthExcel == 0)
+        intDataXLength = intDataXLengthExcel;
+        intDataYLength = (geoSize/intDataXLength);
+    else
+        intDataXLength = intDataXLengthExcel;
+        intDataYLength = intDataYLengthExcel;
+    end
+    
     %% Parses Reflected Ex 
     
     %Checks to see if we need to run Ex
@@ -76,7 +110,7 @@ for intDataParseIndex = 1:intDataParseSize
         reflectedExr = zeros(intDataXLength,intDataYLength,cell2mat(arrDataPath(intDataParseIndex,4)));
 
         %Loops to load reflected light Ex
-        for intIndex = 0:(cell2mat(arrDataPath(intDataParseIndex,4)) - 1)
+        for intIndex = intStartBin:(cell2mat(arrDataPath(intDataParseIndex,4)) - 1)
             %Sets up the file paths
             dataFileExr =  [char(arrDataPath(intDataParseIndex,1)) strFileReflected 'Ex_total_ts' int2str(intIndex) '.bin'];
             dataFileExi = '';
@@ -117,22 +151,22 @@ for intDataParseIndex = 1:intDataParseSize
     
      %Checks to see if we need to run Ey
     if (intEyCoeff ~= 0)
-    %Preallocates the reflected data
-    reflectedEyr = zeros(intDataXLength,intDataYLength,cell2mat(arrDataPath(intDataParseIndex,4)));
+        %Preallocates the reflected data
+        reflectedEyr = zeros(intDataXLength,intDataYLength,cell2mat(arrDataPath(intDataParseIndex,4)));
 
-    %Loops to load reflected light Ey
-    for intIndex = 0:(cell2mat(arrDataPath(intDataParseIndex,4)) - 1)
-        %Sets up the file paths
-        dataFileExr = '';
-        dataFileExi = '';
-        dataFileEyr =  [ char(arrDataPath(intDataParseIndex,1)) strFileReflected 'Ey_total_ts' int2str(intIndex) '.bin'];
-        dataFileEyi = '';
-        dataFileEzr = '';
-        dataFileEzi = '';
-        dataFileHxr = '';
-        dataFileHxi = '';
-        dataFileHyr = '';
-        dataFileHyi = '';
+        %Loops to load reflected light Ey
+        for intIndex = intStartBin:(cell2mat(arrDataPath(intDataParseIndex,4)) - 1)
+            %Sets up the file paths
+            dataFileExr = '';
+            dataFileExi = '';
+            dataFileEyr =  [ char(arrDataPath(intDataParseIndex,1)) strFileReflected 'Ey_total_ts' int2str(intIndex) '.bin'];
+            dataFileEyi = '';
+            dataFileEzr = '';
+            dataFileEzi = '';
+            dataFileHxr = '';
+            dataFileHxi = '';
+            dataFileHyr = '';
+            dataFileHyi = '';
             dataFileHzr = '';
             dataFileHzi = '';
 
@@ -166,7 +200,7 @@ for intDataParseIndex = 1:intDataParseSize
         reflectedEzr = zeros(intDataXLength,intDataYLength,cell2mat(arrDataPath(intDataParseIndex,4)));
 
         %Loops to load reflected light Ezr
-        for intIndex = 0:(cell2mat(arrDataPath(intDataParseIndex,4)) - 1)
+        for intIndex = intStartBin:(cell2mat(arrDataPath(intDataParseIndex,4)) - 1)
             %Sets up the file paths
             dataFileExr = '';
             dataFileExi = '';
@@ -212,7 +246,7 @@ for intDataParseIndex = 1:intDataParseSize
         reflectedHxr = zeros(intDataXLength,intDataYLength,cell2mat(arrDataPath(intDataParseIndex,4)));
 
         %Loops to load reflected light Hx
-        for intIndex = 0:(cell2mat(arrDataPath(intDataParseIndex,4)) - 1)
+        for intIndex = intStartBin:(cell2mat(arrDataPath(intDataParseIndex,4)) - 1)
             %Sets up the file paths
             dataFileExr = '';
             dataFileExi = '';
@@ -257,7 +291,7 @@ for intDataParseIndex = 1:intDataParseSize
         reflectedHyr = zeros(intDataXLength,intDataYLength,cell2mat(arrDataPath(intDataParseIndex,4)));
 
         %Loops to load reflected light Hy
-        for intIndex = 0:(cell2mat(arrDataPath(intDataParseIndex,4)) - 1)
+        for intIndex = intStartBin:(cell2mat(arrDataPath(intDataParseIndex,4)) - 1)
             %Sets up the file paths
             dataFileExr = '';
             dataFileExi = '';
@@ -301,7 +335,7 @@ for intDataParseIndex = 1:intDataParseSize
         reflectedHzr = zeros(intDataXLength,intDataYLength,cell2mat(arrDataPath(intDataParseIndex,4)));
 
         %Loops to load reflected light Hy
-        for intIndex = 0:(cell2mat(arrDataPath(intDataParseIndex,4)) - 1)
+        for intIndex = intStartBin:(cell2mat(arrDataPath(intDataParseIndex,4)) - 1)
             %Sets up the file paths
             dataFileExr = '';
             dataFileExi = '';
@@ -346,7 +380,7 @@ for intDataParseIndex = 1:intDataParseSize
         ref_FFT = real(1/2.* refEx_FFT .* conj(refHy_FFT)) - real(1/2.*refEy_FFT .* conj(refHx_FFT));
     elseif (intExCoeff == 0)
         %Light traveling in +X direction
-        ref_FFT = real(1/2.* refEz_FFT .* conj(refHy_FFT)) - real(1/2.*refEy_FFT .* conj(refHz_FFT));
+        ref_FFT = -1*real(1/2.* refEz_FFT .* conj(refHy_FFT)) + real(1/2.*refEy_FFT .* conj(refHz_FFT));
     else
         %Prints error message
         beep;
@@ -368,177 +402,290 @@ for intDataParseIndex = 1:intDataParseSize
     end
    
     %% Parses Transmitted Ex
-   
-    % Preallocates the transmitted data
-    transmittedExr = zeros(intDataXLength,intDataYLength,cell2mat(arrDataPath(intDataParseIndex,4)));
+    
+    %Checks to see if we need to run Ex
+    if (intExCoeff ~= 0)
+        % Preallocates the transmitted data
+        transmittedExr = zeros(intDataXLength,intDataYLength,cell2mat(arrDataPath(intDataParseIndex,4)));
 
-    %Loops using Parallel FOR to load transmitted light
-    for intIndex = 0:(cell2mat(arrDataPath(intDataParseIndex,4)) - 1)
-        %Sets up the file paths
-        dataFileExr =  [char(arrDataPath(intDataParseIndex,1)) strFileTransmitted 'Ex_total_ts' int2str(intIndex) '.bin'];
-        dataFileExi = '';
-        dataFileEyr = '';
-        dataFileEyi = '';
-        dataFileEzr = '';
-        dataFileEzi = '';
-        dataFileHxr = '';
-        dataFileHxi = '';
-        dataFileHyr = '';
-        dataFileHyi = '';
-        dataFileHzr = '';
-        dataFileHzi = '';
+        %Loops using Parallel FOR to load transmitted light
+        for intIndex = intStartBin:(cell2mat(arrDataPath(intDataParseIndex,4)) - 1)
+            %Sets up the file paths
+            dataFileExr =  [char(arrDataPath(intDataParseIndex,1)) strFileTransmitted 'Ex_total_ts' int2str(intIndex) '.bin'];
+            dataFileExi = '';
+            dataFileEyr = '';
+            dataFileEyi = '';
+            dataFileEzr = '';
+            dataFileEzi = '';
+            dataFileHxr = '';
+            dataFileHxi = '';
+            dataFileHyr = '';
+            dataFileHyi = '';
+            dataFileHzr = '';
+            dataFileHzi = '';
 
 
-        %Retrieves the data from the BIN file
-        [dataExr, dataExi, dataEyr, dataEyi, dataEzr, dataEzi,dataHxr, dataHxi, dataHyr, dataHyi,dataHzr, dataHzi]  = ff_readXFssData(dataFileExr, dataFileExi, dataFileEyr, dataFileEyi,dataFileEzr, dataFileEzi, dataFileHxr, dataFileHxi, dataFileHyr, dataFileHyi, dataFileHzr, dataFileHzi,intDataXLength, intDataYLength);
+            %Retrieves the data from the BIN file
+            [dataExr, dataExi, dataEyr, dataEyi, dataEzr, dataEzi,dataHxr, dataHxi, dataHyr, dataHyi,dataHzr, dataHzi]  = ff_readXFssData(dataFileExr, dataFileExi, dataFileEyr, dataFileEyi,dataFileEzr, dataFileEzi, dataFileHxr, dataFileHxi, dataFileHyr, dataFileHyi, dataFileHzr, dataFileHzi,intDataXLength, intDataYLength);
 
-        %Concatinates the data matricies
-        transmittedExr(:,:,intIndex+1) = dataExr;
-        
-         %Displays the progress
-        if mod(intIndex,30) == 0 
-            TransmittedLightPercentDone = round(10000*(intIndex/(cell2mat(arrDataPath(intDataParseIndex,4)) - 1)))/100;
-            fprintf('%i of %i datasets - transmitted Ex Percent Done: %3.1f%%\n',intDataParseIndex, intDataParseSize,TransmittedLightPercentDone); 
-        end 
+            %Concatinates the data matricies
+            transmittedExr(:,:,intIndex+1) = dataExr;
+
+             %Displays the progress
+            if mod(intIndex,30) == 0 
+                TransmittedLightPercentDone = round(10000*(intIndex/(cell2mat(arrDataPath(intDataParseIndex,4)) - 1)))/100;
+                fprintf('%i of %i datasets - transmitted Ex Percent Done: %3.1f%%\n',intDataParseIndex, intDataParseSize,TransmittedLightPercentDone); 
+            end 
+        end
+
+        %Performs FFT on data
+        fprintf('\n\nPerforming Transmitted Ex FFT...\n\n');
+        txEx_FFT = PerformFFT(transmittedExr,cell2mat(arrDataPath(intDataParseIndex,5)),(cell2mat(arrDataPath(intDataParseIndex,7))*1e-9),(cell2mat(arrDataPath(intDataParseIndex,8))*1e-9));
+
+        %Clears unused variables
+        clear transmittedExr;
     end
-    
-    %Performs FFT on data
-    fprintf('\n\nPerforming Transmitted Ex FFT...\n\n');
-    txEx_FFT = PerformFFT(transmittedExr,cell2mat(arrDataPath(intDataParseIndex,5)),(cell2mat(arrDataPath(intDataParseIndex,7))*1e-9),(cell2mat(arrDataPath(intDataParseIndex,8))*1e-9));
-    
-    %Clears unused variables
-    clear transmittedExr;
     
     
     %% Parses Transmitted Ey
    
-    % Preallocates the transmitted data
-    transmittedEyr = zeros(intDataXLength,intDataYLength,cell2mat(arrDataPath(intDataParseIndex,4)));
+    %Checks to see if we need to run Ey
+    if (intEyCoeff ~= 0)
+        % Preallocates the transmitted data
+        transmittedEyr = zeros(intDataXLength,intDataYLength,cell2mat(arrDataPath(intDataParseIndex,4)));
 
-    %Loops using Parallel FOR to load transmitted light
-    for intIndex = 0:(cell2mat(arrDataPath(intDataParseIndex,4)) - 1)
-        %Sets up the file paths
-        dataFileExr = '';
-        dataFileExi = '';
-        dataFileEyr =  [char(arrDataPath(intDataParseIndex,1)) strFileTransmitted 'Ey_total_ts' int2str(intIndex) '.bin'];
-        dataFileEyi = '';
-        dataFileEzr = '';
-        dataFileEzi = '';
-        dataFileHxr = '';
-        dataFileHxi = '';
-        dataFileHyr = '';
-        dataFileHyi = '';
-        dataFileHzr = '';
-        dataFileHzi = '';
+        %Loops using Parallel FOR to load transmitted light
+        for intIndex = intStartBin:(cell2mat(arrDataPath(intDataParseIndex,4)) - 1)
+            %Sets up the file paths
+            dataFileExr = '';
+            dataFileExi = '';
+            dataFileEyr =  [char(arrDataPath(intDataParseIndex,1)) strFileTransmitted 'Ey_total_ts' int2str(intIndex) '.bin'];
+            dataFileEyi = '';
+            dataFileEzr = '';
+            dataFileEzi = '';
+            dataFileHxr = '';
+            dataFileHxi = '';
+            dataFileHyr = '';
+            dataFileHyi = '';
+            dataFileHzr = '';
+            dataFileHzi = '';
 
 
-        %Retrieves the data from the BIN file
-        [dataExr, dataExi, dataEyr, dataEyi, dataEzr, dataEzi,dataHxr, dataHxi, dataHyr, dataHyi,dataHzr, dataHzi]  = ff_readXFssData(dataFileExr, dataFileExi, dataFileEyr, dataFileEyi,dataFileEzr, dataFileEzi, dataFileHxr, dataFileHxi, dataFileHyr, dataFileHyi, dataFileHzr, dataFileHzi,intDataXLength, intDataYLength);
+            %Retrieves the data from the BIN file
+            [dataExr, dataExi, dataEyr, dataEyi, dataEzr, dataEzi,dataHxr, dataHxi, dataHyr, dataHyi,dataHzr, dataHzi]  = ff_readXFssData(dataFileExr, dataFileExi, dataFileEyr, dataFileEyi,dataFileEzr, dataFileEzi, dataFileHxr, dataFileHxi, dataFileHyr, dataFileHyi, dataFileHzr, dataFileHzi,intDataXLength, intDataYLength);
 
-        %Concatinates the data matricies
-        transmittedEyr(:,:,intIndex+1) = dataEyr;
-        
-         %Displays the progress
-        if mod(intIndex,30) == 0 
-            TransmittedLightPercentDone = round(10000*(intIndex/(cell2mat(arrDataPath(intDataParseIndex,4)) - 1)))/100;
-            fprintf('%i of %i datasets - transmitted Ey Percent Done: %3.1f%%\n',intDataParseIndex, intDataParseSize,TransmittedLightPercentDone); 
-        end 
+            %Concatinates the data matricies
+            transmittedEyr(:,:,intIndex+1) = dataEyr;
+
+             %Displays the progress
+            if mod(intIndex,30) == 0 
+                TransmittedLightPercentDone = round(10000*(intIndex/(cell2mat(arrDataPath(intDataParseIndex,4)) - 1)))/100;
+                fprintf('%i of %i datasets - transmitted Ey Percent Done: %3.1f%%\n',intDataParseIndex, intDataParseSize,TransmittedLightPercentDone); 
+            end 
+        end
+
+        %Performs FFT on data
+        fprintf('\n\nPerforming Transmitted Ey FFT...\n\n');
+        txEy_FFT = PerformFFT(transmittedEyr,cell2mat(arrDataPath(intDataParseIndex,5)),(cell2mat(arrDataPath(intDataParseIndex,7))*1e-9),(cell2mat(arrDataPath(intDataParseIndex,8))*1e-9));
+
+        %Clears unused variables
+        clear transmittedEyr;
     end
-
-    %Performs FFT on data
-    fprintf('\n\nPerforming Transmitted Ey FFT...\n\n');
-    txEy_FFT = PerformFFT(transmittedEyr,cell2mat(arrDataPath(intDataParseIndex,5)),(cell2mat(arrDataPath(intDataParseIndex,7))*1e-9),(cell2mat(arrDataPath(intDataParseIndex,8))*1e-9));
     
-    %Clears unused variables
-    clear transmittedEyr;
+    %% Parses Transmitted Ez   
+    
+    %Checks to see if we need to run Ez
+    if (intEzCoeff ~= 0)
+        % Preallocates the transmitted data
+        transmittedEyz = zeros(intDataXLength,intDataYLength,cell2mat(arrDataPath(intDataParseIndex,4)));
+
+        %Loops using Parallel FOR to load transmitted light
+        for intIndex = intStartBin:(cell2mat(arrDataPath(intDataParseIndex,4)) - 1)
+            %Sets up the file paths
+            dataFileExr = '';
+            dataFileExi = '';
+            dataFileEyr = '';
+            dataFileEyi = '';
+            dataFileEzr = [char(arrDataPath(intDataParseIndex,1)) strFileTransmitted 'Ez_total_ts' int2str(intIndex) '.bin'];
+            dataFileEzi = '';
+            dataFileHxr = '';
+            dataFileHxi = '';
+            dataFileHyr = '';
+            dataFileHyi = '';
+            dataFileHzr = '';
+            dataFileHzi = '';
+
+
+            %Retrieves the data from the BIN file
+            [dataExr, dataExi, dataEyr, dataEyi, dataEzr, dataEzi,dataHxr, dataHxi, dataHyr, dataHyi,dataHzr, dataHzi]  = ff_readXFssData(dataFileExr, dataFileExi, dataFileEyr, dataFileEyi,dataFileEzr, dataFileEzi, dataFileHxr, dataFileHxi, dataFileHyr, dataFileHyi, dataFileHzr, dataFileHzi,intDataXLength, intDataYLength);
+
+            %Concatinates the data matricies
+            transmittedEzr(:,:,intIndex+1) = dataEzr;
+
+             %Displays the progress
+            if mod(intIndex,30) == 0 
+                TransmittedLightPercentDone = round(10000*(intIndex/(cell2mat(arrDataPath(intDataParseIndex,4)) - 1)))/100;
+                fprintf('%i of %i datasets - transmitted Ez Percent Done: %3.1f%%\n',intDataParseIndex, intDataParseSize,TransmittedLightPercentDone); 
+            end 
+        end
+
+        %Performs FFT on data
+        fprintf('\n\nPerforming Transmitted Ez FFT...\n\n');
+        txEz_FFT = PerformFFT(transmittedEzr,cell2mat(arrDataPath(intDataParseIndex,5)),(cell2mat(arrDataPath(intDataParseIndex,7))*1e-9),(cell2mat(arrDataPath(intDataParseIndex,8))*1e-9));
+
+        %Clears unused variables
+        clear transmittedEzr;
+    end
     
     %% Parses Transmitted Hx
-   
-    % Preallocates the transmitted data
-    transmittedHxr = zeros(intDataXLength,intDataYLength,cell2mat(arrDataPath(intDataParseIndex,4)));
+    
+    %Checks to see if we need to run Hx
+    if (intHxCoeff ~= 0)
+        % Preallocates the transmitted data
+        transmittedHxr = zeros(intDataXLength,intDataYLength,cell2mat(arrDataPath(intDataParseIndex,4)));
 
-    %Loops using Parallel FOR to load transmitted light
-    for intIndex = 0:(cell2mat(arrDataPath(intDataParseIndex,4)) - 1)
-        %Sets up the file paths
-        dataFileExr = ''; 
-        dataFileExi = '';
-        dataFileEyr = '';
-        dataFileEyi = '';
-        dataFileEzr = '';
-        dataFileEzi = '';
-        dataFileHxr = [char(arrDataPath(intDataParseIndex,1)) strFileTransmitted 'Hx_total_ts' int2str(intIndex) '.bin'];
-        dataFileHxi = '';
-        dataFileHyr = '';
-        dataFileHyi = '';
-        dataFileHzr = '';
-        dataFileHzi = '';
-        
-        %Retrieves the data from the BIN file
-        [dataExr, dataExi, dataEyr, dataEyi, dataEzr, dataEzi,dataHxr, dataHxi, dataHyr, dataHyi,dataHzr, dataHzi]  = ff_readXFssData(dataFileExr, dataFileExi, dataFileEyr, dataFileEyi,dataFileEzr, dataFileEzi, dataFileHxr, dataFileHxi, dataFileHyr, dataFileHyi, dataFileHzr, dataFileHzi,intDataXLength, intDataYLength);
+        %Loops using Parallel FOR to load transmitted light
+        for intIndex = intStartBin:(cell2mat(arrDataPath(intDataParseIndex,4)) - 1)
+            %Sets up the file paths
+            dataFileExr = ''; 
+            dataFileExi = '';
+            dataFileEyr = '';
+            dataFileEyi = '';
+            dataFileEzr = '';
+            dataFileEzi = '';
+            dataFileHxr = [char(arrDataPath(intDataParseIndex,1)) strFileTransmitted 'Hx_total_ts' int2str(intIndex) '.bin'];
+            dataFileHxi = '';
+            dataFileHyr = '';
+            dataFileHyi = '';
+            dataFileHzr = '';
+            dataFileHzi = '';
 
-        %Concatinates the data matricies
-        transmittedHxr(:,:,intIndex+1) = dataHxr;
-        
-         %Displays the progress
-        if mod(intIndex,30) == 0 
-            TransmittedLightPercentDone = round(10000*(intIndex/(cell2mat(arrDataPath(intDataParseIndex,4)) - 1)))/100;
-            fprintf('%i of %i datasets - transmitted Hx Percent Done: %3.1f%%\n',intDataParseIndex, intDataParseSize,TransmittedLightPercentDone); 
-        end 
+            %Retrieves the data from the BIN file
+            [dataExr, dataExi, dataEyr, dataEyi, dataEzr, dataEzi,dataHxr, dataHxi, dataHyr, dataHyi,dataHzr, dataHzi]  = ff_readXFssData(dataFileExr, dataFileExi, dataFileEyr, dataFileEyi,dataFileEzr, dataFileEzi, dataFileHxr, dataFileHxi, dataFileHyr, dataFileHyi, dataFileHzr, dataFileHzi,intDataXLength, intDataYLength);
+
+            %Concatinates the data matricies
+            transmittedHxr(:,:,intIndex+1) = dataHxr;
+
+             %Displays the progress
+            if mod(intIndex,30) == 0 
+                TransmittedLightPercentDone = round(10000*(intIndex/(cell2mat(arrDataPath(intDataParseIndex,4)) - 1)))/100;
+                fprintf('%i of %i datasets - transmitted Hx Percent Done: %3.1f%%\n',intDataParseIndex, intDataParseSize,TransmittedLightPercentDone); 
+            end 
+        end
+
+        %Performs FFT on data
+        fprintf('\n\nPerforming Transmitted Hx FFT...\n\n');
+        txHx_FFT = PerformFFT(transmittedHxr,cell2mat(arrDataPath(intDataParseIndex,5)),(cell2mat(arrDataPath(intDataParseIndex,7))*1e-9),(cell2mat(arrDataPath(intDataParseIndex,8))*1e-9));
+
+        %Clears unused variables
+        clear transmittedHxr;
     end
-
-    %Performs FFT on data
-    fprintf('\n\nPerforming Transmitted Hx FFT...\n\n');
-    txHx_FFT = PerformFFT(transmittedHxr,cell2mat(arrDataPath(intDataParseIndex,5)),(cell2mat(arrDataPath(intDataParseIndex,7))*1e-9),(cell2mat(arrDataPath(intDataParseIndex,8))*1e-9));
-    
-    %Clears unused variables
-    clear transmittedHxr;
-    
     
     %% Parses Transmitted Hy
    
-    % Preallocates the transmitted data
-    transmittedHyr = zeros(intDataXLength,intDataYLength,cell2mat(arrDataPath(intDataParseIndex,4)));
+    %Checks to see if we need to run Hy
+    if (intHyCoeff ~= 0)
+        % Preallocates the transmitted data
+        transmittedHyr = zeros(intDataXLength,intDataYLength,cell2mat(arrDataPath(intDataParseIndex,4)));
 
-    %Loops using Parallel FOR to load transmitted light
-    for intIndex = 0:(cell2mat(arrDataPath(intDataParseIndex,4)) - 1)
-        %Sets up the file paths
-        dataFileExr = '';
-        dataFileExi = '';
-        dataFileEyr = ''; 
-        dataFileEyi = '';
-        dataFileEzr = ''; 
-        dataFileEzi = '';
-        dataFileHxr = '';
-        dataFileHxi = '';
-        dataFileHyr = [char(arrDataPath(intDataParseIndex,1)) strFileTransmitted 'Hy_total_ts' int2str(intIndex) '.bin'];
-        dataFileHyi = '';
-        dataFileHzr = '';
-        dataFileHzi = '';    
-        
-        %Retrieves the data from the BIN file
-        [dataExr, dataExi, dataEyr, dataEyi, dataEzr, dataEzi,dataHxr, dataHxi, dataHyr, dataHyi,dataHzr, dataHzi]  = ff_readXFssData(dataFileExr, dataFileExi, dataFileEyr, dataFileEyi,dataFileEzr, dataFileEzi, dataFileHxr, dataFileHxi, dataFileHyr, dataFileHyi, dataFileHzr, dataFileHzi,intDataXLength, intDataYLength);
+        %Loops using Parallel FOR to load transmitted light
+        for intIndex = intStartBin:(cell2mat(arrDataPath(intDataParseIndex,4)) - 1)
+            %Sets up the file paths
+            dataFileExr = '';
+            dataFileExi = '';
+            dataFileEyr = ''; 
+            dataFileEyi = '';
+            dataFileEzr = ''; 
+            dataFileEzi = '';
+            dataFileHxr = '';
+            dataFileHxi = '';
+            dataFileHyr = [char(arrDataPath(intDataParseIndex,1)) strFileTransmitted 'Hy_total_ts' int2str(intIndex) '.bin'];
+            dataFileHyi = '';
+            dataFileHzr = '';
+            dataFileHzi = '';    
 
-        %Concatinates the data matricies
-        transmittedHyr(:,:,intIndex+1) = dataHyr;
-        
-         %Displays the progress
-        if mod(intIndex,30) == 0 
-            TransmittedLightPercentDone = round(10000*(intIndex/(cell2mat(arrDataPath(intDataParseIndex,4)) - 1)))/100;
-            fprintf('%i of %i datasets - transmitted Hy Percent Done: %3.1f%%\n',intDataParseIndex, intDataParseSize,TransmittedLightPercentDone); 
-        end 
+            %Retrieves the data from the BIN file
+            [dataExr, dataExi, dataEyr, dataEyi, dataEzr, dataEzi,dataHxr, dataHxi, dataHyr, dataHyi,dataHzr, dataHzi]  = ff_readXFssData(dataFileExr, dataFileExi, dataFileEyr, dataFileEyi,dataFileEzr, dataFileEzi, dataFileHxr, dataFileHxi, dataFileHyr, dataFileHyi, dataFileHzr, dataFileHzi,intDataXLength, intDataYLength);
+
+            %Concatinates the data matricies
+            transmittedHyr(:,:,intIndex+1) = dataHyr;
+
+             %Displays the progress
+            if mod(intIndex,30) == 0 
+                TransmittedLightPercentDone = round(10000*(intIndex/(cell2mat(arrDataPath(intDataParseIndex,4)) - 1)))/100;
+                fprintf('%i of %i datasets - transmitted Hy Percent Done: %3.1f%%\n',intDataParseIndex, intDataParseSize,TransmittedLightPercentDone); 
+            end 
+        end
+
+        %Performs FFT on data
+        fprintf('\n\nPerforming Transmitted Hy FFT...\n\n');
+        txHy_FFT = PerformFFT(transmittedHyr,cell2mat(arrDataPath(intDataParseIndex,5)),(cell2mat(arrDataPath(intDataParseIndex,7))*1e-9),(cell2mat(arrDataPath(intDataParseIndex,8))*1e-9));
+
+        %Clears unused variables
+        clear transmittedHyr;
     end
-
-    %Performs FFT on data
-    fprintf('\n\nPerforming Transmitted Hy FFT...\n\n');
-    txHy_FFT = PerformFFT(transmittedHyr,cell2mat(arrDataPath(intDataParseIndex,5)),(cell2mat(arrDataPath(intDataParseIndex,7))*1e-9),(cell2mat(arrDataPath(intDataParseIndex,8))*1e-9));
     
-    %Clears unused variables
-    clear transmittedHyr;
+    %% Parses Transmitted Hz
+    
+    %Checks to see if we need to run Hz
+    if (intHzCoeff ~= 0)
+        % Preallocates the transmitted data
+        transmittedHzr = zeros(intDataXLength,intDataYLength,cell2mat(arrDataPath(intDataParseIndex,4)));
+
+        %Loops using Parallel FOR to load transmitted light
+        for intIndex = intStartBin:(cell2mat(arrDataPath(intDataParseIndex,4)) - 1)
+            %Sets up the file paths
+            dataFileExr = '';
+            dataFileExi = '';
+            dataFileEyr = ''; 
+            dataFileEyi = '';
+            dataFileEzr = ''; 
+            dataFileEzi = '';
+            dataFileHxr = '';
+            dataFileHxi = '';
+            dataFileHyr = '';
+            dataFileHyi = '';
+            dataFileHzr = [char(arrDataPath(intDataParseIndex,1)) strFileTransmitted 'Hz_total_ts' int2str(intIndex) '.bin'];
+            dataFileHzi = '';    
+
+            %Retrieves the data from the BIN file
+            [dataExr, dataExi, dataEyr, dataEyi, dataEzr, dataEzi,dataHxr, dataHxi, dataHyr, dataHyi,dataHzr, dataHzi]  = ff_readXFssData(dataFileExr, dataFileExi, dataFileEyr, dataFileEyi,dataFileEzr, dataFileEzi, dataFileHxr, dataFileHxi, dataFileHyr, dataFileHyi, dataFileHzr, dataFileHzi,intDataXLength, intDataYLength);
+
+            %Concatinates the data matricies
+            transmittedHzr(:,:,intIndex+1) = dataHzr;
+
+             %Displays the progress
+            if mod(intIndex,30) == 0 
+                TransmittedLightPercentDone = round(10000*(intIndex/(cell2mat(arrDataPath(intDataParseIndex,4)) - 1)))/100;
+                fprintf('%i of %i datasets - transmitted Hz Percent Done: %3.1f%%\n',intDataParseIndex, intDataParseSize,TransmittedLightPercentDone); 
+            end 
+        end
+
+        %Performs FFT on data
+        fprintf('\n\nPerforming Transmitted Hz FFT...\n\n');
+        txHz_FFT = PerformFFT(transmittedHzr,cell2mat(arrDataPath(intDataParseIndex,5)),(cell2mat(arrDataPath(intDataParseIndex,7))*1e-9),(cell2mat(arrDataPath(intDataParseIndex,8))*1e-9));
+
+        %Clears unused variables
+        clear transmittedHzr;
+    end
     
     %% Averages transmitted data
     
     % Performs addition on the light intensity on each electric field direction
-    tx_FFT =  real(1/2.*txEy_FFT .* conj(txHx_FFT)) - real(1/2.* txEx_FFT .* conj(txHy_FFT));
+    
+    %Performs addition on the light intensity on each electric field direction
+    if (intEzCoeff == 0)
+        %Light traveling in -Z direction
+        tx_FFT =  real(1/2.*txEy_FFT .* conj(txHx_FFT)) - real(1/2.* txEx_FFT .* conj(txHy_FFT));
+    elseif (intExCoeff == 0)
+        %Light traveling in +X direction
+        tx_FFT =  -1*real(1/2.*txEz_FFT .* conj(txHy_FFT)) + real(1/2.* txEy_FFT .* conj(txHz_FFT));
+    else
+        %Prints error message
+        beep;
+        fprintf('\n\nYour coefficients could be messed up! Check them, or write a new case for light direction\n\n');
+    end
+
     
     %Deletes unused variables
     clear txEx_FFT txEy_FFT txHx_FFT txHy_FFT;

@@ -248,9 +248,29 @@ for intIndex = 1:size(reflectedHyr,1)
 
 end 
 
-%Calculates the combined transmitted and reflected values
-tx_FFT =  real(1/2.*txEy_FFT .* conj(txHx_FFT)) - real(1/2.* txEx_FFT .* conj(txHy_FFT));
-ref_FFT = real(1/2.*refEy_FFT .* conj(refHx_FFT)) - real(1/2.* refEx_FFT .* conj(refHy_FFT));
+%Performs addition on the light intensity on each electric field direction
+if (intEzCoeff == 0)
+    %Light traveling in -Z direction
+    tx_FFT =  real(1/2.*txEy_FFT .* conj(txHx_FFT)) - real(1/2.* txEx_FFT .* conj(txHy_FFT));
+elseif (intExCoeff == 0)
+    %Light traveling in +X direction
+    tx_FFT =  -1*real(1/2.*txEz_FFT .* conj(txHy_FFT)) + real(1/2.* txEy_FFT .* conj(txHz_FFT));
+else
+    %Prints error message
+    beep;
+    fprintf('\n\nYour coefficients could be messed up! Check them, or write a new case for light direction\n\n');
+end
 
-
+%Performs addition on the light intensity on each electric field direction
+if (intEzCoeff == 0)
+    %Light traveling in -Z direction
+    ref_FFT = real(1/2.* refEx_FFT .* conj(refHy_FFT)) - real(1/2.*refEy_FFT .* conj(refHx_FFT));
+elseif (intExCoeff == 0)
+    %Light traveling in +X direction
+    ref_FFT = -1*real(1/2.* refEz_FFT .* conj(refHy_FFT)) + real(1/2.*refEy_FFT .* conj(refHz_FFT));
+else
+    %Prints error message
+    beep;
+    fprintf('\n\nYour coefficients could be messed up! Check them, or write a new case for light direction\n\n');
+end
 
